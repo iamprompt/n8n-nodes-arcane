@@ -1,5 +1,5 @@
 {
-	"node": "n8n-nodes-arcane.arcaneWebhookTrigger",
+	"node": "@iamprompt/n8n-nodes-arcane.arcaneWebhookTrigger",
 	"nodeVersion": "1.0",
 	"codexVersion": "1.0",
 	"categories": [

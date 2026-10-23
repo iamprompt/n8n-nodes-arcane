@@ -1,5 +1,5 @@
 {
-	"node": "n8n-nodes-arcane.arcane",
+	"node": "@iamprompt/n8n-nodes-arcane.arcane",
 	"nodeVersion": "1.0",
 	"codexVersion": "1.0",
 	"categories": [

@@ -1,6 +1,6 @@
-# n8n-nodes-arcane
+# @iamprompt/n8n-nodes-arcane
 
-[![npm version](https://badge.fury.io/js/n8n-nodes-arcane.svg)](https://badge.fury.io/js/n8n-nodes-arcane)
+[![npm version](https://badge.fury.io/js/@iamprompt%2Fn8n-nodes-arcane.svg)](https://badge.fury.io/js/@iamprompt%2Fn8n-nodes-arcane)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 An [n8n](https://n8n.io/) community node package to interact with the **Arcane** Docker and container management platform via its REST API.
@@ -31,13 +31,13 @@ Manage environments, containers, Docker Compose projects/stacks, images, network
 ### Community Nodes (Recommended)
 1. In your n8n instance, go to **Settings > Community Nodes**.
 2. Select **Install**.
-3. Enter `n8n-nodes-arcane` into the **npm Package Name** field.
+3. Enter `@iamprompt/n8n-nodes-arcane` into the **npm Package Name** field.
 4. Agree to the risks and select **Install**.
 
 ### Manual Installation
 In your n8n root directory (typically `~/.n8n`):
 ```bash
-npm install n8n-nodes-arcane
+npm install @iamprompt/n8n-nodes-arcane
 ```
 
 ---

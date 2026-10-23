@@ -1,9 +1,12 @@
 {
-	"name": "n8n-nodes-arcane",
+	"name": "@iamprompt/n8n-nodes-arcane",
 	"version": "0.1.0",
 	"description": "n8n community node for managing Docker containers, compose stacks, and environments via Arcane REST API",
 	"license": "MIT",
 	"homepage": "https://github.com/iamprompt/n8n-nodes-arcane",
+	"publishConfig": {
+		"access": "public"
+	},
 	"keywords": [
 		"n8n-community-node-package",
 		"arcane",

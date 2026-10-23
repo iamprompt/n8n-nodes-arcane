@@ -1,5 +1,5 @@
 {
-	"node": "n8n-nodes-arcane.arcaneTrigger",
+	"node": "@iamprompt/n8n-nodes-arcane.arcaneTrigger",
 	"nodeVersion": "1.0",
 	"codexVersion": "1.0",
 	"categories": [
