@@ -151,13 +151,18 @@ npm run build:watch
 npm run lint
 ```
 
-### Local Testing with n8n
-```bash
-npm link
-cd ~/.n8n
-npm link n8n-nodes-arcane
-n8n start
-```
+### Publishing to npm via GitHub Actions (OIDC)
+
+This repository includes a GitHub Actions workflow ([`.github/workflows/publish.yml`](.github/workflows/publish.yml)) configured for **npm Trusted Publishing (OIDC)** and cryptographic **build provenance**.
+
+#### Setting up npm Trusted Publishing:
+1. On [npmjs.com](https://www.npmjs.com/), go to your package settings: **Settings > Publishing access**.
+2. Under **Trusted Publishers**, select **Add a publisher** and choose **GitHub Actions**:
+   - **Repository owner**: `iamprompt`
+   - **Repository name**: `n8n-nodes-arcane`
+   - **Workflow name**: `publish.yml`
+   - **Environment**: (Leave empty unless using GitHub Environments)
+3. No secrets or tokens are needed in GitHub. Pushing a version tag (`v0.1.0` or `0.1.0`) or creating a GitHub Release will automatically authenticate via OIDC, build, test, and publish to npm with verified provenance.
 
 ---
 
