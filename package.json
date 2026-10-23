@@ -25,6 +25,7 @@
 	"main": "index.js",
 	"scripts": {
 		"build": "n8n-node build",
+		"pretest": "npm run build",
 		"build:watch": "tsc --watch",
 		"dev": "n8n-node dev",
 		"lint": "n8n-node lint",

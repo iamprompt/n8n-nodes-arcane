@@ -40,11 +40,11 @@ jobs:
       - name: Run linter
         run: npm run lint
 
-      - name: Run functional tests
-        run: npm test
-
       - name: Build package
         run: npm run build
+
+      - name: Run functional tests
+        run: npm test
 
       - name: Publish to npm
         # Option A (OIDC Trusted Publishing): If NPM_TOKEN is not provided, npm uses
