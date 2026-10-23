@@ -180,11 +180,26 @@ export class Arcane implements INodeType {
 				// 2. CONTAINER
 				// ==========================================
 				else if (resource === 'container') {
-					const environmentId = this.getNodeParameter('environmentId', i) as string;
+					const environmentId = this.getNodeParameter('environmentId', i, '') as string;
+					if (!environmentId) {
+						throw new NodeOperationError(this.getNode(), 'Please select an Environment', {
+							itemIndex: i,
+						});
+					}
 
 					if (operation === 'create') {
-						const name = this.getNodeParameter('name', i) as string;
-						const image = this.getNodeParameter('image', i) as string;
+						const name = this.getNodeParameter('name', i, '') as string;
+						const image = this.getNodeParameter('image', i, '') as string;
+						if (!name) {
+							throw new NodeOperationError(this.getNode(), 'Please specify a container name', {
+								itemIndex: i,
+							});
+						}
+						if (!image) {
+							throw new NodeOperationError(this.getNode(), 'Please specify a container image', {
+								itemIndex: i,
+							});
+						}
 						const additionalFields = this.getNodeParameter('additionalFields', i, {}) as IDataObject;
 
 						const body: IDataObject = {
@@ -239,7 +254,7 @@ export class Arcane implements INodeType {
 							body,
 						);
 					} else if (operation === 'getAll') {
-						const returnAll = this.getNodeParameter('returnAll', i) as boolean;
+						const returnAll = this.getNodeParameter('returnAll', i, false) as boolean;
 						if (returnAll) {
 							responseData = await arcaneApiRequestAllItems.call(
 								this,
@@ -247,7 +262,7 @@ export class Arcane implements INodeType {
 								`/environments/${environmentId}/containers`,
 							);
 						} else {
-							const limit = this.getNodeParameter('limit', i) as number;
+							const limit = this.getNodeParameter('limit', i, 50) as number;
 							const res = await arcaneApiRequest.call(
 								this,
 								'GET',
@@ -258,7 +273,14 @@ export class Arcane implements INodeType {
 							responseData = extractResponseData(res);
 						}
 					} else {
-						const containerId = this.getNodeParameter('containerId', i) as string;
+						const containerId = this.getNodeParameter('containerId', i, '') as string;
+						if (!containerId) {
+							throw new NodeOperationError(
+								this.getNode(),
+								'Please select or specify a Container Name or ID',
+								{ itemIndex: i },
+							);
+						}
 
 						if (operation === 'get') {
 							responseData = await arcaneApiRequest.call(
@@ -541,8 +563,15 @@ export class Arcane implements INodeType {
 							`/environments/${environmentId}/networks/prune`,
 						);
 					} else if (operation === 'connect') {
-						const networkId = this.getNodeParameter('networkId', i) as string;
-						const containerId = this.getNodeParameter('containerId', i) as string;
+						const networkId = this.getNodeParameter('networkId', i, '') as string;
+						const containerId = this.getNodeParameter('containerId', i, '') as string;
+						if (!containerId) {
+							throw new NodeOperationError(
+								this.getNode(),
+								'Please select or specify a Container Name or ID to connect',
+								{ itemIndex: i },
+							);
+						}
 						responseData = await arcaneApiRequest.call(
 							this,
 							'POST',
@@ -550,8 +579,15 @@ export class Arcane implements INodeType {
 							{ containerId },
 						);
 					} else if (operation === 'disconnect') {
-						const networkId = this.getNodeParameter('networkId', i) as string;
-						const containerId = this.getNodeParameter('containerId', i) as string;
+						const networkId = this.getNodeParameter('networkId', i, '') as string;
+						const containerId = this.getNodeParameter('containerId', i, '') as string;
+						if (!containerId) {
+							throw new NodeOperationError(
+								this.getNode(),
+								'Please select or specify a Container Name or ID to disconnect',
+								{ itemIndex: i },
+							);
+						}
 						const force = this.getNodeParameter('force', i, false) as boolean;
 						responseData = await arcaneApiRequest.call(
 							this,
@@ -639,6 +675,9 @@ export class Arcane implements INodeType {
 					);
 					returnData.push(...executionErrorData);
 					continue;
+				}
+				if (error instanceof NodeOperationError) {
+					throw new NodeOperationError(this.getNode(), error.message, { itemIndex: i });
 				}
 				throw new NodeApiError(this.getNode(), error as JsonObject);
 			}

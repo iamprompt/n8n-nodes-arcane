@@ -223,6 +223,28 @@ test('Functional test: Arcane execute - Error handling with continueOnFail', asy
 	assert.equal(result[0][0].json.error, 'API request failed');
 });
 
+test('Functional test: Arcane execute - Missing containerId throws clean error', async () => {
+	const node = new Arcane();
+
+	const { context } = createMockExecuteFunctions({
+		resource: 'container',
+		operation: 'start',
+		parameters: {
+			environmentId: 'env_1',
+			containerId: '',
+		},
+	});
+
+	await assert.rejects(
+		async () => {
+			await node.execute.call(context);
+		},
+		{
+			message: /Please select or specify a Container Name or ID/,
+		},
+	);
+});
+
 test('Functional test: Arcane Trigger poll - manual mode', async () => {
 	const trigger = new ArcaneTrigger();
 	const mockEvents = {
