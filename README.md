@@ -67,6 +67,7 @@ npm install @iamprompt/n8n-nodes-arcane
 - **Update**: Update environment name or settings.
 
 #### Container
+- **Create**: Create and configure a new Docker container with environment variables, ports, volumes, resource limits, and restart policies.
 - **Get Many**: List containers running in the selected environment.
 - **Get**: Get full container configuration and runtime state.
 - **Start / Stop / Restart**: Manage container runtime state.

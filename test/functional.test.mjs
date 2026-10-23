@@ -91,6 +91,42 @@ test('Arcane Node description and resources', () => {
 	].sort());
 });
 
+test('Functional test: Arcane execute - Container create action', async () => {
+	const node = new Arcane();
+	const mockResponse = { id: 'c_created_123', name: 'my-web', image: 'nginx:alpine' };
+
+	const { context, calls } = createMockExecuteFunctions({
+		resource: 'container',
+		operation: 'create',
+		parameters: {
+			environmentId: 'env_1',
+			name: 'my-web',
+			image: 'nginx:alpine',
+			additionalFields: {
+				command: 'nginx -g daemon off;',
+				env: 'PORT=80,ENV=production',
+				memory: 256,
+				cpus: 0.5,
+				autoRemove: true,
+			},
+		},
+		mockResponse,
+	});
+
+	const result = await node.execute.call(context);
+	assert.equal(calls.length, 1);
+	assert.equal(calls[0].options.method, 'POST');
+	assert.ok(calls[0].options.url.endsWith('/api/environments/env_1/containers'));
+	assert.equal(calls[0].options.body.name, 'my-web');
+	assert.equal(calls[0].options.body.image, 'nginx:alpine');
+	assert.deepEqual(calls[0].options.body.command, ['nginx', '-g', 'daemon', 'off;']);
+	assert.deepEqual(calls[0].options.body.env, ['PORT=80', 'ENV=production']);
+	assert.equal(calls[0].options.body.memory, 256 * 1024 * 1024);
+	assert.equal(calls[0].options.body.cpus, 0.5);
+	assert.equal(calls[0].options.body.autoRemove, true);
+	assert.deepEqual(result[0][0].json, mockResponse);
+});
+
 test('Functional test: Arcane execute - Container getAll', async () => {
 	const node = new Arcane();
 	const mockData = {

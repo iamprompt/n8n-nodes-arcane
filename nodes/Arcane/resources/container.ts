@@ -13,6 +13,12 @@ export const containerOperations: INodeProperties[] = [
 		},
 		options: [
 			{
+				name: 'Create',
+				value: 'create',
+				action: 'Create a container',
+				description: 'Create and configure a new Docker container',
+			},
+			{
 				name: 'Delete',
 				value: 'delete',
 				action: 'Delete a container',
@@ -131,6 +137,159 @@ export const containerFields: INodeProperties[] = [
 			},
 		},
 		description: 'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
+	},
+
+	// Create container fields
+	{
+		displayName: 'Name',
+		name: 'name',
+		type: 'string',
+		required: true,
+		default: '',
+		placeholder: 'my-container',
+		displayOptions: {
+			show: {
+				resource: ['container'],
+				operation: ['create'],
+			},
+		},
+		description: 'Name of the container to create',
+	},
+	{
+		displayName: 'Image',
+		name: 'image',
+		type: 'string',
+		required: true,
+		default: '',
+		placeholder: 'nginx:alpine',
+		displayOptions: {
+			show: {
+				resource: ['container'],
+				operation: ['create'],
+			},
+		},
+		description: 'The image to use for the container',
+	},
+	{
+		displayName: 'Additional Fields',
+		name: 'additionalFields',
+		type: 'collection',
+		placeholder: 'Add Field',
+		default: {},
+		displayOptions: {
+			show: {
+				resource: ['container'],
+				operation: ['create'],
+			},
+		},
+		options: [
+			{
+				displayName: 'Auto Remove',
+				name: 'autoRemove',
+				type: 'boolean',
+				default: false,
+				description: 'Whether to automatically remove the container when it exits',
+			},
+			{
+				displayName: 'Command',
+				name: 'command',
+				type: 'string',
+				default: '',
+				placeholder: 'npm start',
+				description: 'Command to run inside the container',
+			},
+			{
+				displayName: 'CPUs',
+				name: 'cpus',
+				type: 'number',
+				default: 1,
+				description: 'Number of CPUs to allocate',
+			},
+			{
+				displayName: 'Entrypoint',
+				name: 'entrypoint',
+				type: 'string',
+				default: '',
+				placeholder: '/docker-entrypoint.sh',
+				description: 'Custom entrypoint for the container',
+			},
+			{
+				displayName: 'Environment Variables',
+				name: 'env',
+				type: 'string',
+				default: '',
+				placeholder: 'NODE_ENV=production,PORT=3000',
+				description:
+					'Environment variables in KEY=VALUE format, separated by commas or newlines',
+			},
+			{
+				displayName: 'Memory (MB)',
+				name: 'memory',
+				type: 'number',
+				default: 512,
+				description: 'Memory limit in megabytes',
+			},
+			{
+				displayName: 'Networks',
+				name: 'networks',
+				type: 'string',
+				default: '',
+				placeholder: 'bridge,my-net',
+				description: 'Comma-separated names of networks to connect',
+			},
+			{
+				displayName: 'Ports',
+				name: 'ports',
+				type: 'string',
+				default: '',
+				placeholder: '8080:80, 8443:443',
+				description: 'Port mappings in host:container format, separated by commas',
+			},
+			{
+				displayName: 'Privileged',
+				name: 'privileged',
+				type: 'boolean',
+				default: false,
+				description: 'Whether to run container with extended privileges',
+			},
+			{
+				displayName: 'Restart Policy',
+				name: 'restartPolicy',
+				type: 'options',
+				options: [
+					{ name: 'Always', value: 'always' },
+					{ name: 'Never', value: 'no' },
+					{ name: 'On Failure', value: 'on-failure' },
+					{ name: 'Unless Stopped', value: 'unless-stopped' },
+				],
+				default: 'unless-stopped',
+				description: 'Restart behavior when container exits',
+			},
+			{
+				displayName: 'User',
+				name: 'user',
+				type: 'string',
+				default: '',
+				placeholder: '1000:1000',
+				description: 'User or UID/GID to run inside container',
+			},
+			{
+				displayName: 'Volumes',
+				name: 'volumes',
+				type: 'string',
+				default: '',
+				placeholder: '/host/path:/container/path,my-vol:/data',
+				description: 'Volume mounts in host:container format, separated by commas',
+			},
+			{
+				displayName: 'Working Dir',
+				name: 'workingDir',
+				type: 'string',
+				default: '',
+				placeholder: '/app',
+				description: 'Working directory inside container',
+			},
+		],
 	},
 
 	// Delete options

@@ -182,7 +182,63 @@ export class Arcane implements INodeType {
 				else if (resource === 'container') {
 					const environmentId = this.getNodeParameter('environmentId', i) as string;
 
-					if (operation === 'getAll') {
+					if (operation === 'create') {
+						const name = this.getNodeParameter('name', i) as string;
+						const image = this.getNodeParameter('image', i) as string;
+						const additionalFields = this.getNodeParameter('additionalFields', i, {}) as IDataObject;
+
+						const body: IDataObject = {
+							name,
+							image,
+						};
+
+						if (additionalFields.command) {
+							body.command = (additionalFields.command as string).split(' ').filter(Boolean);
+						}
+						if (additionalFields.entrypoint) {
+							body.entrypoint = (additionalFields.entrypoint as string).split(' ').filter(Boolean);
+						}
+						if (additionalFields.env) {
+							body.env = (additionalFields.env as string)
+								.split(/[,\n]/)
+								.map((s) => s.trim())
+								.filter(Boolean);
+						}
+						if (additionalFields.networks) {
+							body.networks = (additionalFields.networks as string)
+								.split(',')
+								.map((s) => s.trim())
+								.filter(Boolean);
+						}
+						if (additionalFields.restartPolicy) {
+							body.restartPolicy = additionalFields.restartPolicy;
+						}
+						if (additionalFields.memory) {
+							body.memory = Number(additionalFields.memory) * 1024 * 1024;
+						}
+						if (additionalFields.cpus) {
+							body.cpus = Number(additionalFields.cpus);
+						}
+						if (additionalFields.workingDir) {
+							body.workingDir = additionalFields.workingDir;
+						}
+						if (additionalFields.user) {
+							body.user = additionalFields.user;
+						}
+						if (additionalFields.privileged !== undefined) {
+							body.privileged = additionalFields.privileged;
+						}
+						if (additionalFields.autoRemove !== undefined) {
+							body.autoRemove = additionalFields.autoRemove;
+						}
+
+						responseData = await arcaneApiRequest.call(
+							this,
+							'POST',
+							`/environments/${environmentId}/containers`,
+							body,
+						);
+					} else if (operation === 'getAll') {
 						const returnAll = this.getNodeParameter('returnAll', i) as boolean;
 						if (returnAll) {
 							responseData = await arcaneApiRequestAllItems.call(
