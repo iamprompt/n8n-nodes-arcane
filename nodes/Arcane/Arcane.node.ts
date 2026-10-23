@@ -207,6 +207,8 @@ export class Arcane implements INodeType {
 							image,
 						};
 
+						const hostConfig: IDataObject = {};
+
 						if (additionalFields.command) {
 							body.command = (additionalFields.command as string).split(' ').filter(Boolean);
 						}
@@ -225,14 +227,57 @@ export class Arcane implements INodeType {
 								.map((s) => s.trim())
 								.filter(Boolean);
 						}
+						if (additionalFields.volumes) {
+							const volumes = (additionalFields.volumes as string)
+								.split(/[,\n]/)
+								.map((s) => s.trim())
+								.filter(Boolean);
+							body.volumes = volumes;
+							hostConfig.binds = volumes;
+						}
+						if (additionalFields.ports) {
+							const portEntries = (additionalFields.ports as string)
+								.split(/[,\n]/)
+								.map((s) => s.trim())
+								.filter(Boolean);
+							const portsMap: Record<string, string> = {};
+							const portBindings: Record<string, Array<{ hostPort: string; hostIp?: string }>> = {};
+							for (const entry of portEntries) {
+								if (entry.includes(':')) {
+									const parts = entry.split(':').map((s) => s.trim());
+									if (parts.length === 2) {
+										const [hostPort, containerPort] = parts;
+										portsMap[containerPort] = hostPort;
+										const key = containerPort.includes('/') ? containerPort : `${containerPort}/tcp`;
+										portBindings[key] = [{ hostPort }];
+									} else if (parts.length === 3) {
+										const [hostIp, hostPort, containerPort] = parts;
+										portsMap[containerPort] = hostPort;
+										const key = containerPort.includes('/') ? containerPort : `${containerPort}/tcp`;
+										portBindings[key] = [{ hostIp, hostPort }];
+									}
+								} else {
+									portsMap[entry] = entry;
+									const key = entry.includes('/') ? entry : `${entry}/tcp`;
+									portBindings[key] = [{ hostPort: entry }];
+								}
+							}
+							body.ports = portsMap;
+							hostConfig.portBindings = portBindings;
+						}
 						if (additionalFields.restartPolicy) {
 							body.restartPolicy = additionalFields.restartPolicy;
+							hostConfig.restartPolicy = { name: additionalFields.restartPolicy };
 						}
 						if (additionalFields.memory) {
-							body.memory = Number(additionalFields.memory) * 1024 * 1024;
+							const mem = Number(additionalFields.memory) * 1024 * 1024;
+							body.memory = mem;
+							hostConfig.memory = mem;
 						}
 						if (additionalFields.cpus) {
-							body.cpus = Number(additionalFields.cpus);
+							const cpus = Number(additionalFields.cpus);
+							body.cpus = cpus;
+							hostConfig.nanoCpus = Math.round(cpus * 1e9);
 						}
 						if (additionalFields.workingDir) {
 							body.workingDir = additionalFields.workingDir;
@@ -242,9 +287,15 @@ export class Arcane implements INodeType {
 						}
 						if (additionalFields.privileged !== undefined) {
 							body.privileged = additionalFields.privileged;
+							hostConfig.privileged = additionalFields.privileged;
 						}
 						if (additionalFields.autoRemove !== undefined) {
 							body.autoRemove = additionalFields.autoRemove;
+							hostConfig.autoRemove = additionalFields.autoRemove;
+						}
+
+						if (Object.keys(hostConfig).length > 0) {
+							body.hostConfig = hostConfig;
 						}
 
 						responseData = await arcaneApiRequest.call(

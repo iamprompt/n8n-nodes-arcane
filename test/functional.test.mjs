@@ -108,6 +108,8 @@ test('Functional test: Arcane execute - Container create action', async () => {
 				memory: 256,
 				cpus: 0.5,
 				autoRemove: true,
+				volumes: '/host/data:/app/data,my-vol:/data:ro',
+				ports: '8080:80, 8443:443',
 			},
 		},
 		mockResponse,
@@ -121,6 +123,9 @@ test('Functional test: Arcane execute - Container create action', async () => {
 	assert.equal(calls[0].options.body.image, 'nginx:alpine');
 	assert.deepEqual(calls[0].options.body.command, ['nginx', '-g', 'daemon', 'off;']);
 	assert.deepEqual(calls[0].options.body.env, ['PORT=80', 'ENV=production']);
+	assert.deepEqual(calls[0].options.body.volumes, ['/host/data:/app/data', 'my-vol:/data:ro']);
+	assert.deepEqual(calls[0].options.body.ports, { '80': '8080', '443': '8443' });
+	assert.deepEqual(calls[0].options.body.hostConfig.binds, ['/host/data:/app/data', 'my-vol:/data:ro']);
 	assert.equal(calls[0].options.body.memory, 256 * 1024 * 1024);
 	assert.equal(calls[0].options.body.cpus, 0.5);
 	assert.equal(calls[0].options.body.autoRemove, true);
