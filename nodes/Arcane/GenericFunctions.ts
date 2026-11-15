@@ -75,7 +75,8 @@ export async function arcaneApiRequestAllItems(
 		const items = Array.isArray(response) ? (response as IDataObject[]) : ((response as IDataObject)?.data as IDataObject[]) || [];
 		returnData.push(...items);
 
-		if (!items.length || items.length < limit) {
+		const pagination = !Array.isArray(response) ? ((response as IDataObject)?.pagination as IDataObject | undefined) : undefined;
+		if (!items.length || items.length < limit || (pagination && pagination.hasNextPage === false)) {
 			hasMore = false;
 		} else {
 			start += limit;
@@ -87,13 +88,13 @@ export async function arcaneApiRequestAllItems(
 
 export async function getEnvironments(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
 	try {
-		const response = await arcaneApiRequest.call(this, 'GET', '/environments', {}, { limit: 100 });
+		const response = await arcaneApiRequest.call(this, 'GET', '/agents', {}, { limit: 100 });
 		const environments = Array.isArray(response) ? (response as IDataObject[]) : ((response as IDataObject)?.data as IDataObject[]) || [];
 
 		return environments.map((env: IDataObject) => ({
 			name: (env.name as string) || (env.id as string),
 			value: env.id as string,
-			description: (env.description as string) || `Status: ${(env.status as string) || 'unknown'}`,
+			description: (env.apiUrl as string) || (env.description as string) || `Status: ${(env.status as string) || 'unknown'}`,
 		}));
 	} catch {
 		return [];
@@ -110,7 +111,7 @@ export async function getContainers(this: ILoadOptionsFunctions): Promise<INodeP
 		const response = await arcaneApiRequest.call(
 			this,
 			'GET',
-			`/environments/${environmentId}/containers`,
+			`/agents/${environmentId}/containers`,
 			{},
 			{ limit: 100 },
 		);
@@ -140,7 +141,7 @@ export async function getProjects(this: ILoadOptionsFunctions): Promise<INodePro
 		const response = await arcaneApiRequest.call(
 			this,
 			'GET',
-			`/environments/${environmentId}/projects`,
+			`/agents/${environmentId}/projects`,
 			{},
 			{ limit: 100 },
 		);

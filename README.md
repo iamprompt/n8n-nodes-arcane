@@ -3,7 +3,7 @@
 [![npm version](https://badge.fury.io/js/@iamprompt%2Fn8n-nodes-arcane.svg)](https://badge.fury.io/js/@iamprompt%2Fn8n-nodes-arcane)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-An [n8n](https://n8n.io/) community node package to interact with the **Arcane** Docker and container management platform via its REST API.
+An [n8n](https://n8n.io/) community node package to interact with the **Arcane** (v3.0.0+) Docker and container management platform via its REST API.
 
 Manage environments, containers, Docker Compose projects/stacks, images, networks, and persistent volumes directly from your n8n workflows.
 

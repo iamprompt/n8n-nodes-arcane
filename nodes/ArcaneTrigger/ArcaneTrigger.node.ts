@@ -105,7 +105,7 @@ export class ArcaneTrigger implements INodeType {
 
 		let endpoint = '/events';
 		if (environmentId) {
-			endpoint = `/events/environment/${environmentId}`;
+			endpoint = `/events/agent/${environmentId}`;
 		}
 
 		const response = await arcaneApiRequest.call(this, 'GET', endpoint, {}, query);

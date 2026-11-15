@@ -118,7 +118,7 @@ test('Functional test: Arcane execute - Container create action', async () => {
 	const result = await node.execute.call(context);
 	assert.equal(calls.length, 1);
 	assert.equal(calls[0].options.method, 'POST');
-	assert.ok(calls[0].options.url.endsWith('/api/environments/env_1/containers'));
+	assert.ok(calls[0].options.url.endsWith('/api/agents/env_1/containers'));
 	assert.equal(calls[0].options.body.name, 'my-web');
 	assert.equal(calls[0].options.body.image, 'nginx:alpine');
 	assert.deepEqual(calls[0].options.body.command, ['nginx', '-g', 'daemon', 'off;']);
@@ -155,7 +155,7 @@ test('Functional test: Arcane execute - Container getAll', async () => {
 	const result = await node.execute.call(context);
 	assert.equal(calls.length, 1);
 	assert.equal(calls[0].options.method, 'GET');
-	assert.ok(calls[0].options.url.endsWith('/api/environments/env_1/containers'));
+	assert.ok(calls[0].options.url.endsWith('/api/agents/env_1/containers'));
 	assert.equal(calls[0].options.qs.limit, 10);
 
 	assert.equal(result.length, 1);
@@ -182,7 +182,8 @@ test('Functional test: Arcane execute - Container restart action', async () => {
 	const result = await node.execute.call(context);
 	assert.equal(calls.length, 1);
 	assert.equal(calls[0].options.method, 'POST');
-	assert.ok(calls[0].options.url.endsWith('/api/environments/env_prod/containers/container_abc/restart'));
+	assert.ok(calls[0].options.url.endsWith('/api/agents/env_prod/containers/container_abc'));
+	assert.equal(calls[0].options.qs.action, 'restart');
 	assert.deepEqual(result[0][0].json, mockResponse);
 });
 
@@ -203,7 +204,54 @@ test('Functional test: Arcane execute - Project (Stack) Up action', async () => 
 	const result = await node.execute.call(context);
 	assert.equal(calls.length, 1);
 	assert.equal(calls[0].options.method, 'POST');
-	assert.ok(calls[0].options.url.endsWith('/api/environments/env_1/projects/proj_stack_1/up'));
+	assert.ok(calls[0].options.url.endsWith('/api/agents/env_1/projects/proj_stack_1/deploy'));
+	assert.equal(calls[0].options.qs.action, 'up');
+	assert.deepEqual(result[0][0].json, mockResponse);
+});
+
+test('Functional test: Arcane execute - Environment update PATCH', async () => {
+	const node = new Arcane();
+	const mockResponse = { id: 'env_1', name: 'Updated Env' };
+
+	const { context, calls } = createMockExecuteFunctions({
+		resource: 'environment',
+		operation: 'update',
+		parameters: {
+			environmentId: 'env_1',
+			name: 'Updated Env',
+		},
+		mockResponse,
+	});
+
+	const result = await node.execute.call(context);
+	assert.equal(calls.length, 1);
+	assert.equal(calls[0].options.method, 'PATCH');
+	assert.ok(calls[0].options.url.endsWith('/api/agents/env_1'));
+	assert.deepEqual(calls[0].options.body, { name: 'Updated Env' });
+	assert.deepEqual(result[0][0].json, mockResponse);
+});
+
+test('Functional test: Arcane execute - Network connect action', async () => {
+	const node = new Arcane();
+	const mockResponse = { success: true };
+
+	const { context, calls } = createMockExecuteFunctions({
+		resource: 'network',
+		operation: 'connect',
+		parameters: {
+			environmentId: 'env_1',
+			networkId: 'net_1',
+			containerId: 'cnt_1',
+		},
+		mockResponse,
+	});
+
+	const result = await node.execute.call(context);
+	assert.equal(calls.length, 1);
+	assert.equal(calls[0].options.method, 'POST');
+	assert.ok(calls[0].options.url.endsWith('/api/agents/env_1/networks/net_1'));
+	assert.equal(calls[0].options.qs.action, 'connect');
+	assert.deepEqual(calls[0].options.body, { containerId: 'cnt_1' });
 	assert.deepEqual(result[0][0].json, mockResponse);
 });
 
@@ -349,6 +397,40 @@ test('Functional test: Arcane Webhook Trigger - webhook execution', async () => 
 	assert.deepEqual(outputItem.query, { env: 'prod' });
 });
 
+test('Functional test: Arcane Trigger poll - with environmentId', async () => {
+	const trigger = new ArcaneTrigger();
+	const mockEvents = {
+		data: [
+			{ id: 'evt_agent_1', type: 'container.started', severity: 'info', createdAt: '2026-10-23T10:00:00Z' },
+		],
+	};
+
+	let requestedUrl = '';
+	const context = {
+		getNode: () => ({ name: 'Arcane Trigger' }),
+		getWorkflowStaticData: () => ({}),
+		getNodeParameter: (param) => {
+			if (param === 'environmentId') return 'env_edge_99';
+			if (param === 'limit') return 50;
+			return '';
+		},
+		getMode: () => 'manual',
+		helpers: {
+			httpRequestWithAuthentication: async (cred, options) => {
+				requestedUrl = options.url;
+				return mockEvents;
+			},
+			returnJsonArray: (arr) => arr.map((item) => ({ json: item })),
+		},
+		getCredentials: async () => ({ baseUrl: 'http://localhost:3552', apiKey: 'key' }),
+	};
+
+	const result = await trigger.poll.call(context);
+	assert.ok(result);
+	assert.ok(requestedUrl.endsWith('/api/events/agent/env_edge_99'));
+	assert.equal(result[0][0].json.id, 'evt_agent_1');
+});
+
 test('Functional test: loadOptions methods', async () => {
 	const node = new Arcane();
 	const mockEnvs = {
@@ -358,15 +440,20 @@ test('Functional test: loadOptions methods', async () => {
 		],
 	};
 
+	let requestedUrl = '';
 	const context = {
 		getNode: () => ({ name: 'Arcane' }),
 		helpers: {
-			httpRequestWithAuthentication: async () => mockEnvs,
+			httpRequestWithAuthentication: async (cred, options) => {
+				requestedUrl = options.url;
+				return mockEnvs;
+			},
 		},
 		getCredentials: async () => ({ baseUrl: 'http://localhost:3552', apiKey: 'key' }),
 	};
 
 	const options = await node.methods.loadOptions.getEnvironments.call(context);
+	assert.ok(requestedUrl.endsWith('/api/agents'));
 	assert.equal(options.length, 2);
 	assert.equal(options[0].name, 'Staging');
 	assert.equal(options[0].value, 'env_1');

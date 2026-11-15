@@ -136,15 +136,15 @@ export class Arcane implements INodeType {
 					if (operation === 'getAll') {
 						const returnAll = this.getNodeParameter('returnAll', i) as boolean;
 						if (returnAll) {
-							responseData = await arcaneApiRequestAllItems.call(this, 'GET', '/environments');
+							responseData = await arcaneApiRequestAllItems.call(this, 'GET', '/agents');
 						} else {
 							const limit = this.getNodeParameter('limit', i) as number;
-							const res = await arcaneApiRequest.call(this, 'GET', '/environments', {}, { limit });
+							const res = await arcaneApiRequest.call(this, 'GET', '/agents', {}, { limit });
 							responseData = extractResponseData(res);
 						}
 					} else if (operation === 'get') {
 						const environmentId = this.getNodeParameter('environmentId', i) as string;
-						responseData = await arcaneApiRequest.call(this, 'GET', `/environments/${environmentId}`);
+						responseData = await arcaneApiRequest.call(this, 'GET', `/agents/${environmentId}`);
 					} else if (operation === 'create') {
 						const apiUrl = this.getNodeParameter('apiUrl', i) as string;
 						const name = this.getNodeParameter('name', i, '') as string;
@@ -154,25 +154,25 @@ export class Arcane implements INodeType {
 							...(name ? { name } : {}),
 							...additionalFields,
 						};
-						responseData = await arcaneApiRequest.call(this, 'POST', '/environments', body);
+						responseData = await arcaneApiRequest.call(this, 'POST', '/agents', body);
 					} else if (operation === 'update') {
 						const environmentId = this.getNodeParameter('environmentId', i) as string;
 						const name = this.getNodeParameter('name', i, '') as string;
 						const body: IDataObject = {};
 						if (name) body.name = name;
-						responseData = await arcaneApiRequest.call(this, 'PUT', `/environments/${environmentId}`, body);
+						responseData = await arcaneApiRequest.call(this, 'PATCH', `/agents/${environmentId}`, body);
 					} else if (operation === 'delete') {
 						const environmentId = this.getNodeParameter('environmentId', i) as string;
-						responseData = await arcaneApiRequest.call(this, 'DELETE', `/environments/${environmentId}`);
+						responseData = await arcaneApiRequest.call(this, 'DELETE', `/agents/${environmentId}`);
 					} else if (operation === 'testConnection') {
 						const environmentId = this.getNodeParameter('environmentId', i) as string;
-						responseData = await arcaneApiRequest.call(this, 'POST', `/environments/${environmentId}/test`);
+						responseData = await arcaneApiRequest.call(this, 'POST', `/agents/${environmentId}/test`);
 					} else if (operation === 'sync') {
 						const environmentId = this.getNodeParameter('environmentId', i) as string;
-						responseData = await arcaneApiRequest.call(this, 'POST', `/environments/${environmentId}/sync`);
+						responseData = await arcaneApiRequest.call(this, 'POST', `/agents/${environmentId}/sync`);
 					} else if (operation === 'getVersion') {
 						const environmentId = this.getNodeParameter('environmentId', i) as string;
-						responseData = await arcaneApiRequest.call(this, 'GET', `/environments/${environmentId}/version`);
+						responseData = await arcaneApiRequest.call(this, 'GET', `/agents/${environmentId}/version`);
 					}
 				}
 
@@ -301,7 +301,7 @@ export class Arcane implements INodeType {
 						responseData = await arcaneApiRequest.call(
 							this,
 							'POST',
-							`/environments/${environmentId}/containers`,
+							`/agents/${environmentId}/containers`,
 							body,
 						);
 					} else if (operation === 'getAll') {
@@ -310,14 +310,14 @@ export class Arcane implements INodeType {
 							responseData = await arcaneApiRequestAllItems.call(
 								this,
 								'GET',
-								`/environments/${environmentId}/containers`,
+								`/agents/${environmentId}/containers`,
 							);
 						} else {
 							const limit = this.getNodeParameter('limit', i, 50) as number;
 							const res = await arcaneApiRequest.call(
 								this,
 								'GET',
-								`/environments/${environmentId}/containers`,
+								`/agents/${environmentId}/containers`,
 								{},
 								{ limit },
 							);
@@ -337,49 +337,33 @@ export class Arcane implements INodeType {
 							responseData = await arcaneApiRequest.call(
 								this,
 								'GET',
-								`/environments/${environmentId}/containers/${containerId}`,
+								`/agents/${environmentId}/containers/${containerId}`,
 							);
-						} else if (operation === 'start') {
+						} else if (
+							operation === 'start' ||
+							operation === 'stop' ||
+							operation === 'restart' ||
+							operation === 'pause' ||
+							operation === 'unpause' ||
+							operation === 'kill'
+						) {
+							const qs: IDataObject = { action: operation };
+							if (operation === 'kill') {
+								const signal = this.getNodeParameter('signal', i, 'SIGKILL') as string;
+								if (signal) qs.signal = signal;
+							}
 							responseData = await arcaneApiRequest.call(
 								this,
 								'POST',
-								`/environments/${environmentId}/containers/${containerId}/start`,
-							);
-						} else if (operation === 'stop') {
-							responseData = await arcaneApiRequest.call(
-								this,
-								'POST',
-								`/environments/${environmentId}/containers/${containerId}/stop`,
-							);
-						} else if (operation === 'restart') {
-							responseData = await arcaneApiRequest.call(
-								this,
-								'POST',
-								`/environments/${environmentId}/containers/${containerId}/restart`,
-							);
-						} else if (operation === 'pause') {
-							responseData = await arcaneApiRequest.call(
-								this,
-								'POST',
-								`/environments/${environmentId}/containers/${containerId}/pause`,
-							);
-						} else if (operation === 'unpause') {
-							responseData = await arcaneApiRequest.call(
-								this,
-								'POST',
-								`/environments/${environmentId}/containers/${containerId}/unpause`,
-							);
-						} else if (operation === 'kill') {
-							responseData = await arcaneApiRequest.call(
-								this,
-								'POST',
-								`/environments/${environmentId}/containers/${containerId}/kill`,
+								`/agents/${environmentId}/containers/${containerId}`,
+								{},
+								qs,
 							);
 						} else if (operation === 'redeploy') {
 							responseData = await arcaneApiRequest.call(
 								this,
 								'POST',
-								`/environments/${environmentId}/containers/${containerId}/redeploy`,
+								`/agents/${environmentId}/containers/${containerId}/redeploy`,
 							);
 						} else if (operation === 'delete') {
 							const force = this.getNodeParameter('force', i, false) as boolean;
@@ -387,7 +371,7 @@ export class Arcane implements INodeType {
 							responseData = await arcaneApiRequest.call(
 								this,
 								'DELETE',
-								`/environments/${environmentId}/containers/${containerId}`,
+								`/agents/${environmentId}/containers/${containerId}`,
 								{},
 								{ force, volumes },
 							);
@@ -395,7 +379,7 @@ export class Arcane implements INodeType {
 							responseData = await arcaneApiRequest.call(
 								this,
 								'GET',
-								`/environments/${environmentId}/containers/${containerId}/logs/download`,
+								`/agents/${environmentId}/containers/${containerId}/logs/download`,
 							);
 						}
 					}
@@ -413,14 +397,14 @@ export class Arcane implements INodeType {
 							responseData = await arcaneApiRequestAllItems.call(
 								this,
 								'GET',
-								`/environments/${environmentId}/projects`,
+								`/agents/${environmentId}/projects`,
 							);
 						} else {
 							const limit = this.getNodeParameter('limit', i) as number;
 							const res = await arcaneApiRequest.call(
 								this,
 								'GET',
-								`/environments/${environmentId}/projects`,
+								`/agents/${environmentId}/projects`,
 								{},
 								{ limit },
 							);
@@ -433,60 +417,54 @@ export class Arcane implements INodeType {
 							responseData = await arcaneApiRequest.call(
 								this,
 								'GET',
-								`/environments/${environmentId}/projects/${projectId}`,
+								`/agents/${environmentId}/projects/${projectId}`,
 							);
-						} else if (operation === 'up') {
+						} else if (operation === 'up' || operation === 'redeploy' || operation === 'pull') {
 							responseData = await arcaneApiRequest.call(
 								this,
 								'POST',
-								`/environments/${environmentId}/projects/${projectId}/up`,
+								`/agents/${environmentId}/projects/${projectId}/deploy`,
+								{},
+								{ action: operation },
 							);
 						} else if (operation === 'down') {
 							responseData = await arcaneApiRequest.call(
 								this,
 								'POST',
-								`/environments/${environmentId}/projects/${projectId}/down`,
+								`/agents/${environmentId}/projects/${projectId}`,
+								{},
+								{ action: 'down' },
 							);
 						} else if (operation === 'restart') {
 							const services = this.getNodeParameter('services', i, '') as string;
-							const qs: IDataObject = {};
-							if (services) qs.services = services;
+							const qs: IDataObject = { action: 'restart' };
+							if (services) {
+								qs.services = services.split(',').map((s) => s.trim()).filter(Boolean);
+							}
 							responseData = await arcaneApiRequest.call(
 								this,
 								'POST',
-								`/environments/${environmentId}/projects/${projectId}/restart`,
+								`/agents/${environmentId}/projects/${projectId}`,
 								{},
 								qs,
-							);
-						} else if (operation === 'redeploy') {
-							responseData = await arcaneApiRequest.call(
-								this,
-								'POST',
-								`/environments/${environmentId}/projects/${projectId}/redeploy`,
-							);
-						} else if (operation === 'pull') {
-							responseData = await arcaneApiRequest.call(
-								this,
-								'POST',
-								`/environments/${environmentId}/projects/${projectId}/pull`,
 							);
 						} else if (operation === 'build') {
 							responseData = await arcaneApiRequest.call(
 								this,
 								'POST',
-								`/environments/${environmentId}/projects/${projectId}/build`,
+								`/agents/${environmentId}/projects/${projectId}/build`,
 							);
 						} else if (operation === 'destroy') {
 							responseData = await arcaneApiRequest.call(
 								this,
 								'DELETE',
-								`/environments/${environmentId}/projects/${projectId}/destroy`,
+								`/agents/${environmentId}/projects/${projectId}`,
 							);
 						} else if (operation === 'getCompose') {
 							responseData = await arcaneApiRequest.call(
 								this,
 								'GET',
-								`/environments/${environmentId}/projects/${projectId}/compose`,
+								`/agents/${environmentId}/projects/${projectId}/compose`,
 							);
 						}
 					}
@@ -504,14 +482,14 @@ export class Arcane implements INodeType {
 							responseData = await arcaneApiRequestAllItems.call(
 								this,
 								'GET',
-								`/environments/${environmentId}/images`,
+								`/agents/${environmentId}/images`,
 							);
 						} else {
 							const limit = this.getNodeParameter('limit', i) as number;
 							const res = await arcaneApiRequest.call(
 								this,
 								'GET',
-								`/environments/${environmentId}/images`,
+								`/agents/${environmentId}/images`,
 								{},
 								{ limit },
 							);
@@ -522,7 +500,7 @@ export class Arcane implements INodeType {
 						responseData = await arcaneApiRequest.call(
 							this,
 							'GET',
-							`/environments/${environmentId}/images/${imageId}`,
+							`/agents/${environmentId}/images/${imageId}`,
 						);
 					} else if (operation === 'pull') {
 						const imageName = this.getNodeParameter('imageName', i) as string;
@@ -530,7 +508,7 @@ export class Arcane implements INodeType {
 						responseData = await arcaneApiRequest.call(
 							this,
 							'POST',
-							`/environments/${environmentId}/images/pull`,
+							`/agents/${environmentId}/images/pull`,
 							{ imageName, tag },
 						);
 					} else if (operation === 'remove') {
@@ -538,13 +516,13 @@ export class Arcane implements INodeType {
 						responseData = await arcaneApiRequest.call(
 							this,
 							'DELETE',
-							`/environments/${environmentId}/images/${imageId}`,
+							`/agents/${environmentId}/images/${imageId}`,
 						);
 					} else if (operation === 'prune') {
 						responseData = await arcaneApiRequest.call(
 							this,
 							'POST',
-							`/environments/${environmentId}/images/prune`,
+							`/agents/${environmentId}/images/prune`,
 						);
 					} else if (operation === 'tag') {
 						const sourceImage = this.getNodeParameter('sourceImage', i) as string;
@@ -553,7 +531,7 @@ export class Arcane implements INodeType {
 						responseData = await arcaneApiRequest.call(
 							this,
 							'POST',
-							`/environments/${environmentId}/images/${sourceImage}/tag`,
+							`/agents/${environmentId}/images/${sourceImage}/tag`,
 							{ repository: targetRepository, tag: targetTag },
 						);
 					}
@@ -571,14 +549,14 @@ export class Arcane implements INodeType {
 							responseData = await arcaneApiRequestAllItems.call(
 								this,
 								'GET',
-								`/environments/${environmentId}/networks`,
+								`/agents/${environmentId}/networks`,
 							);
 						} else {
 							const limit = this.getNodeParameter('limit', i) as number;
 							const res = await arcaneApiRequest.call(
 								this,
 								'GET',
-								`/environments/${environmentId}/networks`,
+								`/agents/${environmentId}/networks`,
 								{},
 								{ limit },
 							);
@@ -589,7 +567,7 @@ export class Arcane implements INodeType {
 						responseData = await arcaneApiRequest.call(
 							this,
 							'GET',
-							`/environments/${environmentId}/networks/${networkId}`,
+							`/agents/${environmentId}/networks/${networkId}`,
 						);
 					} else if (operation === 'create') {
 						const name = this.getNodeParameter('name', i) as string;
@@ -597,7 +575,7 @@ export class Arcane implements INodeType {
 						responseData = await arcaneApiRequest.call(
 							this,
 							'POST',
-							`/environments/${environmentId}/networks`,
+							`/agents/${environmentId}/networks`,
 							{ name, options: { Driver: driver } },
 						);
 					} else if (operation === 'delete') {
@@ -605,13 +583,13 @@ export class Arcane implements INodeType {
 						responseData = await arcaneApiRequest.call(
 							this,
 							'DELETE',
-							`/environments/${environmentId}/networks/${networkId}`,
+							`/agents/${environmentId}/networks/${networkId}`,
 						);
 					} else if (operation === 'prune') {
 						responseData = await arcaneApiRequest.call(
 							this,
 							'POST',
-							`/environments/${environmentId}/networks/prune`,
+							`/agents/${environmentId}/networks/prune`,
 						);
 					} else if (operation === 'connect') {
 						const networkId = this.getNodeParameter('networkId', i, '') as string;
@@ -626,8 +604,9 @@ export class Arcane implements INodeType {
 						responseData = await arcaneApiRequest.call(
 							this,
 							'POST',
-							`/environments/${environmentId}/networks/${networkId}/connect`,
+							`/agents/${environmentId}/networks/${networkId}`,
 							{ containerId },
+							{ action: 'connect' },
 						);
 					} else if (operation === 'disconnect') {
 						const networkId = this.getNodeParameter('networkId', i, '') as string;
@@ -643,8 +622,9 @@ export class Arcane implements INodeType {
 						responseData = await arcaneApiRequest.call(
 							this,
 							'POST',
-							`/environments/${environmentId}/networks/${networkId}/disconnect`,
+							`/agents/${environmentId}/networks/${networkId}`,
 							{ containerId, force },
+							{ action: 'disconnect' },
 						);
 					}
 				}
@@ -661,14 +641,14 @@ export class Arcane implements INodeType {
 							responseData = await arcaneApiRequestAllItems.call(
 								this,
 								'GET',
-								`/environments/${environmentId}/volumes`,
+								`/agents/${environmentId}/volumes`,
 							);
 						} else {
 							const limit = this.getNodeParameter('limit', i) as number;
 							const res = await arcaneApiRequest.call(
 								this,
 								'GET',
-								`/environments/${environmentId}/volumes`,
+								`/agents/${environmentId}/volumes`,
 								{},
 								{ limit },
 							);
@@ -679,7 +659,7 @@ export class Arcane implements INodeType {
 						responseData = await arcaneApiRequest.call(
 							this,
 							'GET',
-							`/environments/${environmentId}/volumes/${volumeName}`,
+							`/agents/${environmentId}/volumes/${volumeName}`,
 						);
 					} else if (operation === 'create') {
 						const name = this.getNodeParameter('name', i) as string;
@@ -687,7 +667,7 @@ export class Arcane implements INodeType {
 						responseData = await arcaneApiRequest.call(
 							this,
 							'POST',
-							`/environments/${environmentId}/volumes`,
+							`/agents/${environmentId}/volumes`,
 							{ name, driver },
 						);
 					} else if (operation === 'delete') {
@@ -696,7 +676,7 @@ export class Arcane implements INodeType {
 						responseData = await arcaneApiRequest.call(
 							this,
 							'DELETE',
-							`/environments/${environmentId}/volumes/${volumeName}`,
+							`/agents/${environmentId}/volumes/${volumeName}`,
 							{},
 							{ force },
 						);
@@ -704,7 +684,7 @@ export class Arcane implements INodeType {
 						responseData = await arcaneApiRequest.call(
 							this,
 							'POST',
-							`/environments/${environmentId}/volumes/prune`,
+							`/agents/${environmentId}/volumes/prune`,
 						);
 					}
 				} else {

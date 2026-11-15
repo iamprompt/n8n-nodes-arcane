@@ -294,6 +294,20 @@ export const containerFields: INodeProperties[] = [
 
 	// Delete options
 	{
+		displayName: 'Signal',
+		name: 'signal',
+		type: 'string',
+		default: 'SIGKILL',
+		placeholder: 'SIGKILL or SIGTERM',
+		displayOptions: {
+			show: {
+				resource: ['container'],
+				operation: ['kill'],
+			},
+		},
+		description: 'Signal to send for kill (for example SIGTERM, SIGKILL). Defaults to SIGKILL.',
+	},
+	{
 		displayName: 'Force',
 		name: 'force',
 		type: 'boolean',
